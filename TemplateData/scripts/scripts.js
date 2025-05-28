@@ -266,18 +266,18 @@ function unityShowBanner(msg, type) {
  */
 function loadUnityGame() {
   const buildUrl = "Build";
-  const loaderUrl = buildUrl + "/demo.loader.js";
+  const loaderUrl = buildUrl + "/soundimals-demo.loader.js";
   
   // Unity build configuration
   const config = {
     arguments: [],
-    dataUrl: buildUrl + "/demo.data.unityweb",
-    frameworkUrl: buildUrl + "/demo.framework.js.unityweb",
-    codeUrl: buildUrl + "/demo.wasm.unityweb",
+    dataUrl: buildUrl + "/soundimals-demo.data.unityweb",
+    frameworkUrl: buildUrl + "/soundimals-demo.framework.js.unityweb",
+    codeUrl: buildUrl + "/soundimals-demo.wasm.unityweb",
     streamingAssetsUrl: "StreamingAssets",
     companyName: "Penpeer co. ltd.",
     productName: "GameCore",
-    productVersion: "0.0.1",
+    productVersion: "0.0.2",
     showBanner: unityShowBanner
   };
 
