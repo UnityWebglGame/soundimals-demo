@@ -1,16 +1,14 @@
 /* Unity WebGL Template - PWA */
 /* Base styles */
-html,body {
+body {
     padding: 0;
     margin: 0;
     font-family: Arial, sans-serif;
     overflow: hidden;
-    position: fixed;
 }
 
 /* Container styles */
 #unity-container {
-    position: fixed;
     width: 100%;
     height: 100%;
 }
