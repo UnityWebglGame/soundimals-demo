@@ -277,7 +277,7 @@ function loadUnityGame() {
     streamingAssetsUrl: "StreamingAssets",
     companyName: "Penpeer co. ltd.",
     productName: "GameCore",
-    productVersion: "0.0.3",
+    productVersion: "0.0.4",
     showBanner: unityShowBanner
   };
 
