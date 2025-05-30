@@ -132,6 +132,7 @@ function setupMobileCanvas() {
   // Listen for orientation changes
   window.addEventListener('orientationchange', adjustMobileCanvasSize);
   window.addEventListener('resize', adjustMobileCanvasSize);
+  window.visualViewport.addEventListener("resize", adjustMobileCanvasSize);
   
   // Initial size adjustment
   adjustMobileCanvasSize();
