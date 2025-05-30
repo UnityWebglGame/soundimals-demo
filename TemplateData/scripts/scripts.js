@@ -132,11 +132,11 @@ function setupMobileCanvas() {
   // Listen for orientation changes
   window.addEventListener('orientationchange', adjustMobileCanvasSize);
   window.addEventListener('resize', adjustMobileCanvasSize);
-  window.visualViewport.addEventListener("resize", () => {
-    const canvas = document.querySelector("canvas");
-    const offsetY = window.visualViewport.offsetTop;
-    canvas.style.transform = `translateY(-${offsetY}px)`;
-  });
+  // window.visualViewport.addEventListener("resize", () => {
+  //   const canvas = document.querySelector("canvas");
+  //   const offsetY = window.visualViewport.offsetTop;
+  //   canvas.style.transform = `translateY(-${offsetY}px)`;
+  // });
 
   // Initial size adjustment
   adjustMobileCanvasSize();
