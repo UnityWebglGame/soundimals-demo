@@ -31,18 +31,18 @@ function initializeDOM() {
   loadingBar = document.querySelector("#unity-loading-bar");
   progressBarFull = document.querySelector("#unity-progress-bar-full");
   warningBanner = document.querySelector("#unity-warning");
-  
+
   // Set initial canvas dimensions from Unity template variables
   canvas.width = 750;
   canvas.height = 1334;
-  
+
   // Store original dimensions for reference
   canvas.originalWidth = 750;
   canvas.originalHeight = 1334;
-  
+
   // Detect device type
   canvas.isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
+
   // Setup canvas based on device type
   if (canvas.isMobileDevice) {
     setupMobileCanvas();
@@ -61,7 +61,7 @@ function initializeDOM() {
 function setupDesktopCanvas() {
   // Add resize event listener
   window.addEventListener('resize', adjustDesktopCanvasSize);
-  
+
   // Initial size adjustment
   adjustDesktopCanvasSize();
 }
@@ -76,14 +76,14 @@ function adjustDesktopCanvasSize() {
   const originalWidth = canvas.originalWidth;
   const originalHeight = canvas.originalHeight;
   const aspectRatio = originalWidth / originalHeight;
-  
+
   // Get available space
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
-  
+
   // Calculate dimensions to maintain aspect ratio
   let canvasWidth, canvasHeight;
-  
+
   if (windowWidth / windowHeight > aspectRatio) {
     // Window is wider than needed
     canvasHeight = Math.min(windowHeight, originalHeight);
@@ -93,21 +93,21 @@ function adjustDesktopCanvasSize() {
     canvasWidth = Math.min(windowWidth, originalWidth);
     canvasHeight = canvasWidth / aspectRatio;
   }
-  
+
   // Enforce minimum size (half of original)
   const minWidth = originalWidth / 2;
   const minHeight = originalHeight / 2;
-  
+
   if (canvasWidth < minWidth) {
     canvasWidth = minWidth;
     canvasHeight = minWidth / aspectRatio;
   }
-  
+
   if (canvasHeight < minHeight) {
     canvasHeight = minHeight;
     canvasWidth = minHeight * aspectRatio;
   }
-  
+
   // Apply CSS dimensions
   applyCanvasDimensions(canvasWidth, canvasHeight);
 }
@@ -125,15 +125,19 @@ function setupMobileCanvas() {
   meta.name = 'viewport';
   meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
   document.getElementsByTagName('head')[0].appendChild(meta);
-  
+
   // Prepare portrait and landscape dimensions
   setupOrientationDimensions();
-  
+
   // Listen for orientation changes
   window.addEventListener('orientationchange', adjustMobileCanvasSize);
   window.addEventListener('resize', adjustMobileCanvasSize);
-  window.visualViewport.addEventListener("resize", adjustMobileCanvasSize);
-  
+  window.visualViewport.addEventListener("resize", () => {
+    const canvas = document.querySelector("canvas");
+    const offsetY = window.visualViewport.offsetTop;
+    canvas.style.transform = `translateY(-${offsetY}px)`;
+  });
+
   // Initial size adjustment
   adjustMobileCanvasSize();
 }
@@ -167,7 +171,7 @@ function adjustMobileCanvasSize() {
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
   const isDevicePortrait = windowHeight > windowWidth;
-  
+
   // Set canvas dimensions based on device orientation
   if (isDevicePortrait) {
     // Use portrait dimensions (e.g., 750x1334)
@@ -178,16 +182,16 @@ function adjustMobileCanvasSize() {
     canvas.width = canvas.landscapeWidth;
     canvas.height = canvas.landscapeHeight;
   }
-  
+
   // Calculate scaling to fit the screen
   const aspectRatio = canvas.width / canvas.height;
   let canvasWidth, canvasHeight;
-  
+
   if (isDevicePortrait) {
     // Portrait mode - fill width
     canvasWidth = windowWidth;
     canvasHeight = canvasWidth / aspectRatio;
-    
+
     // If height exceeds screen, adjust to fit height
     if (canvasHeight > windowHeight) {
       canvasHeight = windowHeight;
@@ -197,14 +201,14 @@ function adjustMobileCanvasSize() {
     // Landscape mode - fill height
     canvasHeight = windowHeight;
     canvasWidth = canvasHeight * aspectRatio;
-    
+
     // If width exceeds screen, adjust to fit width
     if (canvasWidth > windowWidth) {
       canvasWidth = windowWidth;
       canvasHeight = canvasWidth / aspectRatio;
     }
   }
-  
+
   // Apply CSS dimensions
   applyCanvasDimensions(canvasWidth, canvasHeight);
 }
@@ -222,7 +226,7 @@ function applyCanvasDimensions(width, height) {
   // Apply CSS dimensions
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
-  
+
   // Center the canvas
   canvas.style.position = 'absolute';
   canvas.style.left = '50%';
@@ -240,21 +244,21 @@ function unityShowBanner(msg, type) {
   function updateBannerVisibility() {
     warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
   }
-  
+
   const div = document.createElement('div');
   div.innerHTML = msg;
   warningBanner.appendChild(div);
-  
+
   if (type == 'error') {
     div.style = 'background: red; padding: 10px;';
   } else if (type == 'warning') {
     div.style = 'background: yellow; padding: 10px;';
-    setTimeout(function() {
+    setTimeout(function () {
       warningBanner.removeChild(div);
       updateBannerVisibility();
     }, 5000);
   }
-  
+
   updateBannerVisibility();
 }
 
@@ -268,7 +272,7 @@ function unityShowBanner(msg, type) {
 function loadUnityGame() {
   const buildUrl = "Build";
   const loaderUrl = buildUrl + "/soundimals-demo.loader.js";
-  
+
   // Unity build configuration
   const config = {
     arguments: [],
@@ -287,7 +291,7 @@ function loadUnityGame() {
   // config.matchWebGLToCanvasSize = false;
 
   // Set background if available
-  
+
   // Show loading bar
   loadingBar.style.display = "block";
 
@@ -303,14 +307,14 @@ function loadUnityGame() {
       alert(message);
     });
   };
-  
+
   document.body.appendChild(script);
 }
 
 //-----------------------------------------------------------------------------
 // Initialize on page load
 //-----------------------------------------------------------------------------
-window.addEventListener("load", function() {
+window.addEventListener("load", function () {
   initializeDOM();
   loadUnityGame();
 });
