@@ -12,6 +12,9 @@ body {
     position: fixed;
     width: 100%;
     height: 100%;
+    left: 0;
+    top: 0;
+    overflow: hidden;
 }
 
 /* Canvas styles */
@@ -19,6 +22,8 @@ body {
     width: 100%;
     height: 100%;
     background-color: #231F20;
+    touch-action: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 /* Loading UI styles */
@@ -28,6 +33,7 @@ body {
     top: 50%;
     transform: translate(-50%, -50%);
     display: none;
+    z-index: 10;
 }
 
 #unity-logo {
@@ -63,11 +69,20 @@ body {
     display: none;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 20;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     #unity-loading-bar {
         transform: translate(-50%, -50%) scale(0.8);
+    }
+}
+
+/* Fix for iOS devices */
+@media (max-width: 768px) and (orientation: portrait) {
+    #unity-canvas {
+        width: 100%;
+        height: 100%;
     }
 }

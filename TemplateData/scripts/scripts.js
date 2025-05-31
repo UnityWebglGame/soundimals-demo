@@ -167,16 +167,16 @@ function adjustMobileCanvasSize() {
   const windowHeight = window.innerHeight;
   const isDevicePortrait = windowHeight > windowWidth;
   
-  // Set canvas dimensions based on device orientation
-  if (isDevicePortrait) {
-    // Use portrait dimensions (e.g., 750x1334)
-    canvas.width = canvas.portraitWidth;
-    canvas.height = canvas.portraitHeight;
-  } else {
-    // Use landscape dimensions (e.g., 1334x750)
-    canvas.width = canvas.landscapeWidth;
-    canvas.height = canvas.landscapeHeight;
-  }
+  // // Set canvas dimensions based on device orientation
+  // if (isDevicePortrait) {
+  //   // Use portrait dimensions (e.g., 750x1334)
+  //   canvas.width = canvas.portraitWidth;
+  //   canvas.height = canvas.portraitHeight;
+  // } else {
+  //   // Use landscape dimensions (e.g., 1334x750)
+  //   canvas.width = canvas.landscapeWidth;
+  //   canvas.height = canvas.landscapeHeight;
+  // }
   
   // Calculate scaling to fit the screen
   const aspectRatio = canvas.width / canvas.height;
@@ -218,7 +218,15 @@ function adjustMobileCanvasSize() {
  * @param {number} height - Canvas height in pixels
  */
 function applyCanvasDimensions(width, height) {
-  // Apply CSS dimensions
+  
+  canvas.originalWidth = width;
+  canvas.originalHeight = height;
+  
+  // 設置內部繪圖區域大小（確保與顯示尺寸一致）
+  canvas.width = width;
+  canvas.height = height;
+  
+  // 設置顯示尺寸
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
   
@@ -227,6 +235,12 @@ function applyCanvasDimensions(width, height) {
   canvas.style.left = '50%';
   canvas.style.top = '50%';
   canvas.style.transform = 'translate(-50%, -50%)';
+  
+  // 防止顯示問題的額外樣式
+  canvas.style.display = 'block';
+  canvas.style.boxSizing = 'border-box';
+  canvas.style.margin = '0';
+  canvas.style.padding = '0';
 }
 
 /**
