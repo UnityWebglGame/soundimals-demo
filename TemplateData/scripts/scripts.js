@@ -24,7 +24,7 @@ let warningBanner;
 /**
  * Initialize DOM elements and setup canvas
  */
-function initializeDOM() {
+function InitializeDOM() {
   // Get DOM elements
   container = document.querySelector("#unity-container");
   canvas = document.querySelector("#unity-canvas");
@@ -203,6 +203,8 @@ function adjustMobileCanvasSize() {
       canvasHeight = canvasWidth / aspectRatio;
     }
   }
+
+
   
   // Apply CSS dimensions
   applyCanvasDimensions(canvasWidth, canvasHeight);
@@ -219,28 +221,19 @@ function adjustMobileCanvasSize() {
  */
 function applyCanvasDimensions(width, height) {
   
-  canvas.originalWidth = width;
-  canvas.originalHeight = height;
-  
-  // 設置內部繪圖區域大小（確保與顯示尺寸一致）
   canvas.width = width;
   canvas.height = height;
   
-  // 設置顯示尺寸
+  // Apply CSS dimensions
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
-  
+ 
+
   // Center the canvas
   canvas.style.position = 'absolute';
   canvas.style.left = '50%';
   canvas.style.top = '50%';
   canvas.style.transform = 'translate(-50%, -50%)';
-  
-  // 防止顯示問題的額外樣式
-  canvas.style.display = 'block';
-  canvas.style.boxSizing = 'border-box';
-  canvas.style.margin = '0';
-  canvas.style.padding = '0';
 }
 
 /**
@@ -324,6 +317,6 @@ function loadUnityGame() {
 // Initialize on page load
 //-----------------------------------------------------------------------------
 window.addEventListener("load", function() {
-  initializeDOM();
+  InitializeDOM();
   loadUnityGame();
 });
