@@ -167,16 +167,16 @@ function adjustMobileCanvasSize() {
   const windowHeight = window.innerHeight;
   const isDevicePortrait = windowHeight > windowWidth;
   
-  // // Set canvas dimensions based on device orientation
-  // if (isDevicePortrait) {
-  //   // Use portrait dimensions (e.g., 750x1334)
-  //   canvas.width = canvas.portraitWidth;
-  //   canvas.height = canvas.portraitHeight;
-  // } else {
-  //   // Use landscape dimensions (e.g., 1334x750)
-  //   canvas.width = canvas.landscapeWidth;
-  //   canvas.height = canvas.landscapeHeight;
-  // }
+  // Set canvas dimensions based on device orientation
+  if (isDevicePortrait) {
+    // Use portrait dimensions (e.g., 750x1334)
+    canvas.width = canvas.portraitWidth;
+    canvas.height = canvas.portraitHeight;
+  } else {
+    // Use landscape dimensions (e.g., 1334x750)
+    canvas.width = canvas.landscapeWidth;
+    canvas.height = canvas.landscapeHeight;
+  }
   
   // Calculate scaling to fit the screen
   const aspectRatio = canvas.width / canvas.height;
@@ -221,9 +221,11 @@ function adjustMobileCanvasSize() {
  */
 function applyCanvasDimensions(width, height) {
   
-  canvas.width = width*2;
-  canvas.height = height*2;
-  
+
+  if (canvas.isMobileDevice) {
+    canvas.width = width*2;
+    canvas.height = height*2;
+  } 
 
  
     // Apply CSS dimensions
