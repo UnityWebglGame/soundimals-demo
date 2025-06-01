@@ -221,12 +221,14 @@ function adjustMobileCanvasSize() {
  */
 function applyCanvasDimensions(width, height) {
   
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = width*2;
+  canvas.height = height*2;
   
-  // Apply CSS dimensions
+
+ 
+    // Apply CSS dimensions
   canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
+  canvas.style.height = `${height}px`;  
  
 
   // Center the canvas
