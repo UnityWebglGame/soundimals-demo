@@ -126,8 +126,6 @@ function setupMobileCanvas() {
   meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
   document.getElementsByTagName('head')[0].appendChild(meta);
 
-  // Prepare portrait and landscape dimensions
-  setupOrientationDimensions();
 
   // Listen for orientation changes
   window.addEventListener('orientationchange', adjustMobileCanvasSize);
@@ -135,25 +133,6 @@ function setupMobileCanvas() {
 
   // Initial size adjustment
   adjustMobileCanvasSize();
-}
-
-/**
- * Setup portrait and landscape dimensions based on original canvas size
- */
-function setupOrientationDimensions() {
-  if (canvas.originalWidth > canvas.originalHeight) {
-    // Original is landscape
-    canvas.landscapeWidth = canvas.originalWidth;
-    canvas.landscapeHeight = canvas.originalHeight;
-    canvas.portraitWidth = canvas.originalHeight;
-    canvas.portraitHeight = canvas.originalWidth;
-  } else {
-    // Original is portrait
-    canvas.landscapeWidth = canvas.originalHeight;
-    canvas.landscapeHeight = canvas.originalWidth;
-    canvas.portraitWidth = canvas.originalWidth;
-    canvas.portraitHeight = canvas.originalHeight;
-  }
 }
 
 /**
@@ -204,8 +183,8 @@ function adjustMobileCanvasSize() {
 function applyCanvasDimensions(width, height) {
 
   if (canvas.isMobileDevice) {
-    canvas.width = width * 2.5;
-    canvas.height = height * 2.5;
+    canvas.width = width*(3.4);
+    canvas.height = height*(3.4);
   }
 
   // Apply CSS dimensions
@@ -268,7 +247,7 @@ function loadUnityGame() {
     streamingAssetsUrl: "StreamingAssets",
     companyName: "Penpeer co. ltd.",
     productName: "GameCore",
-    productVersion: "0.0.9",
+    productVersion: "0.1.0",
     showBanner: unityShowBanner
 };
 
