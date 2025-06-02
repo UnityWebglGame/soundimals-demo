@@ -204,8 +204,8 @@ function adjustMobileCanvasSize() {
 function applyCanvasDimensions(width, height) {
 
   if (canvas.isMobileDevice) {
-    canvas.width = width * 2.1;
-    canvas.height = height * 2.1;
+    canvas.width = width * 2;
+    canvas.height = height * 2;
   }
 
   // Apply CSS dimensions
@@ -268,7 +268,7 @@ function loadUnityGame() {
     streamingAssetsUrl: "StreamingAssets",
     companyName: "Penpeer co. ltd.",
     productName: "GameCore",
-    productVersion: "0.0.8",
+    productVersion: "0.0.9",
     showBanner: unityShowBanner
 };
 
