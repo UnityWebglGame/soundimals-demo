@@ -270,7 +270,7 @@ function loadUnityGame() {
     productName: "GameCore",
     productVersion: "0.0.8",
     showBanner: unityShowBanner
-  };
+};
 
 // By default Unity keeps WebGL canvas render target size matched with
 // the DOM size of the canvas element (scaled by window.devicePixelRatio)
