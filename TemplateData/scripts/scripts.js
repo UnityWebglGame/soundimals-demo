@@ -204,8 +204,8 @@ function adjustMobileCanvasSize() {
 function applyCanvasDimensions(width, height) {
 
   if (canvas.isMobileDevice) {
-    canvas.width = width * 2.3;
-    canvas.height = height * 2.3;
+    canvas.width = width * 2.1;
+    canvas.height = height * 2.1;
   }
 
   // Apply CSS dimensions
