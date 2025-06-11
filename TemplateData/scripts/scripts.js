@@ -265,12 +265,20 @@ function adjustMobileCanvasSize() {
   const visualViewport = window.visualViewport;
   let windowWidth, windowHeight;
   
-  if (visualViewport) {
+  if (visualViewport && canvas.isMobileDevice) {
+    // Visual viewport gives us the actual visible area excluding browser UI
     windowWidth = visualViewport.width;
     windowHeight = visualViewport.height;
   } else {
+    // Fallback for desktop or unsupported browsers
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
+    
+    // For mobile without visual viewport support, estimate browser UI space
+    if (canvas.isMobileDevice) {
+      // Estimate browser UI takes about 10-15% of screen height
+      windowHeight = windowHeight * 0.85;
+    }
   }
 
   // iOS specific adjustments for safe areas
@@ -371,7 +379,7 @@ function applyCanvasDimensions(width, height, isKeyboardOpen = false) {
     
   }
 
-  // Simple center positioning
+  // Center positioning with proper viewport handling
   canvas.style.position = 'absolute';
   canvas.style.left = '50%';
   canvas.style.top = '50%';

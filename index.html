@@ -44,16 +44,25 @@
         position: fixed;
       }
       
-      /* iOS specific fixes for virtual keyboard */
+      /* Better mobile viewport handling */
       @media only screen and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 2) {
         html, body {
           height: 100vh;
+          height: 100dvh; /* Dynamic viewport height - excludes browser UI */
           height: -webkit-fill-available;
         }
         
         #unity-container {
           height: 100vh;
+          height: 100dvh; /* Dynamic viewport height */
           height: -webkit-fill-available;
+        }
+      }
+      
+      /* Support for newer browsers with dynamic viewport units */
+      @supports (height: 100dvh) {
+        html, body, #unity-container {
+          height: 100dvh !important;
         }
       }
       
