@@ -424,7 +424,7 @@ function applyCanvasDimensions(width, height) {
   canvas.style.left = '50%';
   canvas.style.top = '50%';
   canvas.style.transform = 'translate(-50%, -50%)';
-  canvas.style.backgroundColor = '#fff';
+  canvas.style.backgroundColor = '#000';
 }
 
 /**
@@ -514,17 +514,32 @@ function loadUnityGame() {
 // Set background if available
 
 // Show loading bar
-loadingBar.style.display = "block";
+if (loadingBar) {
+  loadingBar.style.display = "block";
+  loadingBar.style.visibility = "visible";
+}
 
 // Load Unity script
 const script = document.createElement("script");
 script.src = loaderUrl;
 script.onload = () => {
   createUnityInstance(canvas, config, (progress) => {
-    progressBarFull.style.width = 100 * progress + "%";
+    // Update progress bar
+    if (progressBarFull) {
+      progressBarFull.style.width = 100 * progress + "%";
+    }
   }).then((unityInstance) => {
-    loadingBar.style.display = "none";
+    // Hide loading bar when Unity is fully loaded
+    if (loadingBar) {
+      loadingBar.style.display = "none";
+    }
+    // Add loaded class to body
+    document.body.classList.add('unity-loaded');
   }).catch((message) => {
+    // Hide loading bar on error
+    if (loadingBar) {
+      loadingBar.style.display = "none";
+    }
     alert(message);
   });
 };
