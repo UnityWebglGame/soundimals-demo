@@ -328,6 +328,7 @@ function adjustMobileCanvasSize() {
   const scaleY = windowHeight / baseHeight;
   
   // Use the smaller scale to ensure the content fits on screen
+  // Remove any artificial limits - let it scale as large as the screen allows
   const scale = Math.min(scaleX, scaleY);
   
   // Apply the scale to get final canvas dimensions
@@ -450,7 +451,7 @@ function loadUnityGame() {
     streamingAssetsUrl: "StreamingAssets",
     companyName: "chfn",
     productName: "soundimals",
-    productVersion: "0.1.1",
+    productVersion: "0.1.2",
     showBanner: unityShowBanner,
     // Performance optimizations
     printErr: function(message) {
