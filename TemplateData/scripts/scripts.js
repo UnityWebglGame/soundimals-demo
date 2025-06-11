@@ -42,6 +42,8 @@ function InitializeDOM() {
 
   // Detect device type
   canvas.isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  canvas.isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  canvas.isAndroid = /Android/i.test(navigator.userAgent);
 
   // Setup canvas based on device type
   if (canvas.isMobileDevice) {
@@ -120,12 +122,38 @@ function adjustDesktopCanvasSize() {
  * Setup mobile canvas with orientation handling
  */
 function setupMobileCanvas() {
-  // Setup mobile viewport
+  // Setup mobile viewport with iOS specific handling
   const meta = document.createElement('meta');
   meta.name = 'viewport';
-  meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+  
+  if (canvas.isIOS) {
+    // iOS specific viewport to handle safe areas and prevent zooming
+    meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+  } else {
+    // Android and other mobile devices
+    meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+  }
+  
   document.getElementsByTagName('head')[0].appendChild(meta);
 
+  // Add iOS specific CSS variables for safe areas
+  if (canvas.isIOS) {
+    const style = document.createElement('style');
+    style.textContent = `
+      body {
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        margin: 0;
+        background-color: #fff;
+      }
+      #unity-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background-color: #fff;
+      }
+    `;
+    document.head.appendChild(style);
+  }
 
   // Listen for orientation changes
   window.addEventListener('orientationchange', adjustMobileCanvasSize);
@@ -136,8 +164,118 @@ function setupMobileCanvas() {
     window.visualViewport.addEventListener('resize', adjustMobileCanvasSize);
   }
 
+  // iOS specific handling for orientation and safe areas
+  if (canvas.isIOS) {
+    window.addEventListener('orientationchange', function() {
+      // Delay adjustment for iOS orientation change
+      setTimeout(adjustMobileCanvasSize, 500);
+    });
+    
+    // iOS specific keyboard handling
+    setupIOSKeyboardHandling();
+  }
+
   // Initial size adjustment
   adjustMobileCanvasSize();
+}
+
+/**
+ * Setup iOS specific keyboard handling to prevent layout shifts
+ */
+function setupIOSKeyboardHandling() {
+  let keyboardVisible = false;
+  let originalViewportHeight = window.innerHeight;
+  
+  // Store original container styles
+  const container = document.querySelector('#unity-container');
+  const originalContainerStyles = {
+    position: container.style.position,
+    top: container.style.top,
+    left: container.style.left,
+    transform: container.style.transform,
+    height: container.style.height
+  };
+
+  // Listen for viewport changes (better iOS keyboard detection)
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function() {
+      const currentHeight = window.visualViewport.height;
+      const heightDiff = originalViewportHeight - currentHeight;
+      
+      if (heightDiff > 150 && !keyboardVisible) {
+        // Keyboard appeared
+        keyboardVisible = true;
+        lockCanvasPosition();
+      } else if (heightDiff <= 50 && keyboardVisible) {
+        // Keyboard disappeared
+        keyboardVisible = false;
+        unlockCanvasPosition();
+      }
+    });
+  }
+  
+  // Fallback for older iOS versions
+  window.addEventListener('resize', function() {
+    const currentHeight = window.innerHeight;
+    const heightDiff = originalViewportHeight - currentHeight;
+    
+    if (heightDiff > 150 && !keyboardVisible) {
+      keyboardVisible = true;
+      lockCanvasPosition();
+    } else if (heightDiff <= 50 && keyboardVisible) {
+      keyboardVisible = false;
+      unlockCanvasPosition();
+    }
+  });
+
+  function lockCanvasPosition() {
+    // Add CSS class to trigger keyboard-specific styles
+    document.body.classList.add('ios-keyboard-open');
+    
+    // Prevent any layout changes when keyboard appears
+    if (container) {
+      container.style.position = 'fixed';
+      container.style.top = '0';
+      container.style.left = '0';
+      container.style.width = '100vw';
+      container.style.height = `${originalViewportHeight}px`;
+      container.style.transform = 'none';
+      container.style.overflow = 'hidden';
+    }
+    
+    // Ensure canvas stays in original position
+    if (canvas) {
+      canvas.style.position = 'absolute';
+      canvas.style.top = '50%';
+      canvas.style.left = '50%';
+      canvas.style.transform = 'translate(-50%, -50%)';
+    }
+    
+    // Prevent scroll on the body
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+  }
+
+  function unlockCanvasPosition() {
+    // Remove CSS class
+    document.body.classList.remove('ios-keyboard-open');
+    
+    // Restore normal behavior when keyboard disappears
+    if (container) {
+      container.style.position = originalContainerStyles.position || 'fixed';
+      container.style.top = originalContainerStyles.top || '0';
+      container.style.left = originalContainerStyles.left || '0';
+      container.style.transform = originalContainerStyles.transform || 'none';
+      container.style.height = '100vh';
+    }
+    
+    // Restore scroll behavior
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    
+    // Re-adjust canvas size
+    setTimeout(adjustMobileCanvasSize, 100);
+  }
 }
 
 /**
@@ -145,6 +283,7 @@ function setupMobileCanvas() {
  * - Directly matches device orientation (portrait or landscape)
  * - Fills the screen while maintaining aspect ratio
  * - Prevents resizing when virtual keyboard appears
+ * - Handles iOS safe areas properly
  */
 function adjustMobileCanvasSize() {
   // Use visual viewport if available (better for mobile)
@@ -159,6 +298,25 @@ function adjustMobileCanvasSize() {
     windowHeight = window.innerHeight;
   }
 
+  // iOS specific adjustments for safe areas
+  if (canvas.isIOS) {
+    // Get safe area insets if available
+    const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0');
+    const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0');
+    const safeAreaLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal') || '0');
+    const safeAreaRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar') || '0');
+    
+    // Adjust for safe areas
+    windowWidth = windowWidth - safeAreaLeft - safeAreaRight;
+    windowHeight = windowHeight - safeAreaTop - safeAreaBottom;
+    
+    // For iOS, use screen dimensions to avoid issues with browser UI
+    if (!canvas.initialScreenHeight) {
+      windowWidth = Math.min(windowWidth, window.screen.width);
+      windowHeight = Math.min(windowHeight, window.screen.height);
+    }
+  }
+
   // Store initial screen dimensions to prevent keyboard resize
   if (!canvas.initialScreenHeight) {
     canvas.initialScreenHeight = window.screen.height;
@@ -171,26 +329,46 @@ function adjustMobileCanvasSize() {
   const heightReduction = canvas.initialWindowHeight - windowHeight;
   const isKeyboardOpen = heightReduction > 150; // threshold for keyboard detection
 
-  // Use initial dimensions if keyboard is open to prevent canvas resizing
+  // Handle keyboard differently for iOS and Android
   if (isKeyboardOpen) {
-    windowWidth = canvas.initialWindowWidth;
-    windowHeight = canvas.initialWindowHeight;
+    if (canvas.isIOS) {
+      // For iOS, completely ignore viewport changes when keyboard is open
+      // Always use the initial screen dimensions to prevent any layout shifts
+      windowWidth = canvas.initialWindowWidth;
+      windowHeight = canvas.initialWindowHeight;
+      
+      // Additionally, force the container to maintain its position
+      const container = canvas.parentElement;
+      if (container) {
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.transform = 'none';
+      }
+    } else {
+      // Android logic (existing)
+      windowWidth = canvas.initialWindowWidth;
+      windowHeight = canvas.initialWindowHeight;
+    }
   }
 
-  // Use landscape dimensions (e.g., 1334x750)
+  // Use portrait dimensions (750x1334)
   canvas.originalWidth = 750;
   canvas.originalHeight = 1334;
 
-  // Calculate scaling to fit the screen
-  const aspectRatio = canvas.width / canvas.height;
+  // Calculate scaling to fit the screen while maintaining aspect ratio
+  const aspectRatio = canvas.originalWidth / canvas.originalHeight;
   let canvasWidth, canvasHeight;
 
-  // Landscape mode - fill height
-  canvasHeight = windowHeight;
-  canvasWidth = canvasHeight * aspectRatio;
-
-  // If width exceeds screen, adjust to fit width
-  if (canvasWidth > windowWidth) {
+  // Check if we should fill by width or height
+  const screenAspectRatio = windowWidth / windowHeight;
+  
+  if (screenAspectRatio > aspectRatio) {
+    // Screen is wider - fit by height
+    canvasHeight = windowHeight;
+    canvasWidth = canvasHeight * aspectRatio;
+  } else {
+    // Screen is taller - fit by width
     canvasWidth = windowWidth;
     canvasHeight = canvasWidth / aspectRatio;
   }
@@ -209,22 +387,44 @@ function adjustMobileCanvasSize() {
  * @param {number} height - Canvas height in pixels
  */
 function applyCanvasDimensions(width, height) {
-
+  // Set canvas resolution for mobile devices
   if (canvas.isMobileDevice) {
-    canvas.width = width*(3.4);
-    canvas.height = height*(3.4);
+    canvas.width = width * (canvas.isIOS ? 2.0 : 3.4);
+    canvas.height = height * (canvas.isIOS ? 2.0 : 3.4);
   }
 
   // Apply CSS dimensions
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
 
+  // Ensure the container fills the screen and removes black borders
+  const container = canvas.parentElement;
+  if (container && canvas.isMobileDevice) {
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.margin = '0';
+    container.style.padding = '0';
+    container.style.backgroundColor = '#000';
+    container.style.overflow = 'hidden';
+    
+    // For iOS, handle safe areas
+    if (canvas.isIOS) {
+      container.style.paddingTop = 'env(safe-area-inset-top)';
+      container.style.paddingBottom = 'env(safe-area-inset-bottom)';
+      container.style.paddingLeft = 'env(safe-area-inset-left)';
+      container.style.paddingRight = 'env(safe-area-inset-right)';
+    }
+  }
 
   // Center the canvas
   canvas.style.position = 'absolute';
   canvas.style.left = '50%';
   canvas.style.top = '50%';
   canvas.style.transform = 'translate(-50%, -50%)';
+  canvas.style.backgroundColor = '#fff';
 }
 
 /**
@@ -256,11 +456,35 @@ function unityShowBanner(msg, type) {
 }
 
 //-----------------------------------------------------------------------------
+// Resource Preloading and Optimization
+//-----------------------------------------------------------------------------
+
+/**
+ * Preload critical Unity resources for faster loading
+ */
+function preloadUnityResources() {
+  const buildUrl = "Build";
+  const criticalResources = [
+    buildUrl + "/soundimals-demo.loader.js",
+    buildUrl + "/soundimals-demo.framework.js.unityweb",
+  ];
+
+  criticalResources.forEach(url => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.href = url;
+    link.as = 'script';
+    link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+  });
+}
+
+//-----------------------------------------------------------------------------
 // Unity Loading and Initialization
 //-----------------------------------------------------------------------------
 
 /**
- * Load Unity game
+ * Load Unity game with optimized loading strategy
  */
 function loadUnityGame() {
   const buildUrl = "Build";
@@ -276,8 +500,12 @@ function loadUnityGame() {
     companyName: "chfn",
     productName: "soundimals",
     productVersion: "0.1.1",
-    showBanner: unityShowBanner
-};
+    showBanner: unityShowBanner,
+    // Performance optimizations
+    printErr: function(message) {
+      console.warn(message);
+    }
+  };
 
 // By default Unity keeps WebGL canvas render target size matched with
 // the DOM size of the canvas element (scaled by window.devicePixelRatio)
@@ -305,9 +533,17 @@ document.body.appendChild(script);
 }
 
 //-----------------------------------------------------------------------------
-// Initialize on page load
+// Initialize on page load with optimizations
 //-----------------------------------------------------------------------------
-window.addEventListener("load", function () {
+window.addEventListener("DOMContentLoaded", function () {
+  // Initialize DOM early
   InitializeDOM();
+  
+  // Start preloading resources immediately
+  preloadUnityResources();
+});
+
+window.addEventListener("load", function () {
+  // Load Unity game after all resources are ready
   loadUnityGame();
 });
