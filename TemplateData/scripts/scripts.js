@@ -130,6 +130,11 @@ function setupMobileCanvas() {
   // Listen for orientation changes
   window.addEventListener('orientationchange', adjustMobileCanvasSize);
   window.addEventListener('resize', adjustMobileCanvasSize);
+  
+  // Listen for visual viewport changes (better keyboard detection)
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', adjustMobileCanvasSize);
+  }
 
   // Initial size adjustment
   adjustMobileCanvasSize();
@@ -139,12 +144,38 @@ function setupMobileCanvas() {
  * Adjust canvas size for mobile devices
  * - Directly matches device orientation (portrait or landscape)
  * - Fills the screen while maintaining aspect ratio
+ * - Prevents resizing when virtual keyboard appears
  */
 function adjustMobileCanvasSize() {
-  // Get available space
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
+  // Use visual viewport if available (better for mobile)
+  const visualViewport = window.visualViewport;
+  let windowWidth, windowHeight;
+  
+  if (visualViewport) {
+    windowWidth = visualViewport.width;
+    windowHeight = visualViewport.height;
+  } else {
+    windowWidth = window.innerWidth;
+    windowHeight = window.innerHeight;
+  }
 
+  // Store initial screen dimensions to prevent keyboard resize
+  if (!canvas.initialScreenHeight) {
+    canvas.initialScreenHeight = window.screen.height;
+    canvas.initialScreenWidth = window.screen.width;
+    canvas.initialWindowHeight = windowHeight;
+    canvas.initialWindowWidth = windowWidth;
+  }
+
+  // Check if virtual keyboard is likely open (significant height reduction)
+  const heightReduction = canvas.initialWindowHeight - windowHeight;
+  const isKeyboardOpen = heightReduction > 150; // threshold for keyboard detection
+
+  // Use initial dimensions if keyboard is open to prevent canvas resizing
+  if (isKeyboardOpen) {
+    windowWidth = canvas.initialWindowWidth;
+    windowHeight = canvas.initialWindowHeight;
+  }
 
   // Use landscape dimensions (e.g., 1334x750)
   canvas.originalWidth = 750;
@@ -153,7 +184,6 @@ function adjustMobileCanvasSize() {
   // Calculate scaling to fit the screen
   const aspectRatio = canvas.width / canvas.height;
   let canvasWidth, canvasHeight;
-
 
   // Landscape mode - fill height
   canvasHeight = windowHeight;
@@ -164,8 +194,6 @@ function adjustMobileCanvasSize() {
     canvasWidth = windowWidth;
     canvasHeight = canvasWidth / aspectRatio;
   }
-
-
 
   // Apply CSS dimensions
   applyCanvasDimensions(canvasWidth, canvasHeight);
@@ -245,9 +273,9 @@ function loadUnityGame() {
     frameworkUrl: buildUrl + "/soundimals-demo.framework.js.unityweb",
     codeUrl: buildUrl + "/soundimals-demo.wasm.unityweb",
     streamingAssetsUrl: "StreamingAssets",
-    companyName: "Penpeer co. ltd.",
-    productName: "GameCore",
-    productVersion: "0.1.0",
+    companyName: "chfn",
+    productName: "soundimals",
+    productVersion: "0.1.1",
     showBanner: unityShowBanner
 };
 
