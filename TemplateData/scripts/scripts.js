@@ -319,46 +319,20 @@ function adjustMobileCanvasSize() {
   const aspectRatio = canvas.originalWidth / canvas.originalHeight;
   let canvasWidth, canvasHeight;
 
-  // Special handling when keyboard is open
-  if (isKeyboardOpen) {
-    // When keyboard is open, maintain the original canvas size to prevent scaling issues
-    if (canvas.isIOS) {
-      // For iOS, keep original proportions but ensure it fits in the reduced space
-      const reducedHeight = windowHeight * 0.6; // Use 60% of available space when keyboard is open
-      if (windowWidth / reducedHeight > aspectRatio) {
-        canvasHeight = reducedHeight;
-        canvasWidth = canvasHeight * aspectRatio;
-      } else {
-        canvasWidth = windowWidth;
-        canvasHeight = canvasWidth / aspectRatio;
-      }
-    } else {
-      // For Android, use original canvas size to prevent black bars
-      const maxWidth = Math.min(windowWidth, canvas.initialWindowWidth);
-      const maxHeight = Math.min(windowHeight, canvas.initialWindowHeight);
-      
-      if (maxWidth / maxHeight > aspectRatio) {
-        canvasHeight = maxHeight;
-        canvasWidth = canvasHeight * aspectRatio;
-      } else {
-        canvasWidth = maxWidth;
-        canvasHeight = canvasWidth / aspectRatio;
-      }
-    }
-  } else {
-    // Normal behavior when keyboard is not open
-    const screenAspectRatio = windowWidth / windowHeight;
-    
-    if (screenAspectRatio > aspectRatio) {
-      // Screen is wider - fit by height
-      canvasHeight = windowHeight;
-      canvasWidth = canvasHeight * aspectRatio;
-    } else {
-      // Screen is taller - fit by width
-      canvasWidth = windowWidth;
-      canvasHeight = canvasWidth / aspectRatio;
-    }
-  }
+  // Calculate scale based on screen size compared to base resolution (750x1334)
+  const baseWidth = 750;
+  const baseHeight = 1334;
+  
+  // Calculate scale factors for width and height
+  const scaleX = windowWidth / baseWidth;
+  const scaleY = windowHeight / baseHeight;
+  
+  // Use the smaller scale to ensure the content fits on screen
+  const scale = Math.min(scaleX, scaleY);
+  
+  // Apply the scale to get final canvas dimensions
+  canvasWidth = baseWidth * scale;
+  canvasHeight = baseHeight * scale;
 
   // Apply CSS dimensions
   applyCanvasDimensions(canvasWidth, canvasHeight, isKeyboardOpen);
@@ -375,20 +349,7 @@ function adjustMobileCanvasSize() {
  * @param {boolean} isKeyboardOpen - Whether virtual keyboard is open
  */
 function applyCanvasDimensions(width, height, isKeyboardOpen = false) {
-  // Set canvas resolution for mobile devices
-  if (canvas.isMobileDevice) {
-    // Adjust resolution multiplier based on keyboard state
-    let multiplier;
-    if (isKeyboardOpen) {
-      // Lower resolution when keyboard is open to prevent performance issues
-      multiplier = canvas.isIOS ? 1.5 : 2.0;
-    } else {
-      // Normal resolution
-      multiplier = canvas.isIOS ? 2.0 : 3.4;
-    }
-    canvas.width = width * multiplier;
-    canvas.height = height * multiplier;
-  }
+  // Don't modify canvas resolution - let Unity handle it
 
   // Apply CSS dimensions
   canvas.style.width = `${width}px`;
@@ -407,28 +368,9 @@ function applyCanvasDimensions(width, height, isKeyboardOpen = false) {
     container.style.backgroundColor = '#fff';
     container.style.overflow = 'hidden';
     
-    // Special handling when keyboard is open
-    if (isKeyboardOpen) {
-      if (canvas.isIOS) {
-        // For iOS, prevent any scrolling or layout shifts
-        container.style.position = 'fixed';
-        container.style.height = '100vh';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-      } else {
-        // For Android, ensure container doesn't change size
-        container.style.height = '100vh';
-      }
-    } else {
-      // Reset body position when keyboard is closed
-      if (canvas.isIOS) {
-        document.body.style.position = '';
-        document.body.style.width = '';
-      }
-    }
   }
 
-  // Center the canvas
+  // Simple center positioning
   canvas.style.position = 'absolute';
   canvas.style.left = '50%';
   canvas.style.top = '50%';
