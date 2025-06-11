@@ -57,13 +57,17 @@
         }
       }
       
-      /* iOS specific styling */
+      /* iOS specific styling - don't add padding to avoid cutting content */
       @supports (padding: max(0px)) {
         body {
-          padding-left: env(safe-area-inset-left);
-          padding-right: env(safe-area-inset-right);
-          padding-top: env(safe-area-inset-top);
-          padding-bottom: env(safe-area-inset-bottom);
+          /* Remove padding to prevent content being cut off */
+          padding: 0;
+        }
+        
+        /* Only add safe area consideration to the container if needed */
+        #unity-container {
+          /* Use CSS max() to ensure content is never cut off */
+          padding-bottom: max(0px, env(safe-area-inset-bottom));
         }
       }
       

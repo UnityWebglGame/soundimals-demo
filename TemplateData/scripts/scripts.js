@@ -232,24 +232,8 @@ function setupIOSKeyboardHandling() {
     // Add CSS class to trigger keyboard-specific styles
     document.body.classList.add('ios-keyboard-open');
     
-    // Prevent any layout changes when keyboard appears
-    if (container) {
-      container.style.position = 'fixed';
-      container.style.top = '0';
-      container.style.left = '0';
-      container.style.width = '100vw';
-      container.style.height = `${originalViewportHeight}px`;
-      container.style.transform = 'none';
-      container.style.overflow = 'hidden';
-    }
-    
-    // Ensure canvas stays in original position
-    if (canvas) {
-      canvas.style.position = 'absolute';
-      canvas.style.top = '50%';
-      canvas.style.left = '50%';
-      canvas.style.transform = 'translate(-50%, -50%)';
-    }
+    // Force re-adjustment with keyboard state
+    adjustMobileCanvasSize();
     
     // Prevent scroll on the body
     document.body.style.overflow = 'hidden';
@@ -259,15 +243,6 @@ function setupIOSKeyboardHandling() {
   function unlockCanvasPosition() {
     // Remove CSS class
     document.body.classList.remove('ios-keyboard-open');
-    
-    // Restore normal behavior when keyboard disappears
-    if (container) {
-      container.style.position = originalContainerStyles.position || 'fixed';
-      container.style.top = originalContainerStyles.top || '0';
-      container.style.left = originalContainerStyles.left || '0';
-      container.style.transform = originalContainerStyles.transform || 'none';
-      container.style.height = '100vh';
-    }
     
     // Restore scroll behavior
     document.body.style.overflow = '';
@@ -300,18 +275,12 @@ function adjustMobileCanvasSize() {
 
   // iOS specific adjustments for safe areas
   if (canvas.isIOS) {
-    // Get safe area insets if available
-    const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0');
-    const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0');
-    const safeAreaLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal') || '0');
-    const safeAreaRight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar') || '0');
-    
-    // Adjust for safe areas
-    windowWidth = windowWidth - safeAreaLeft - safeAreaRight;
-    windowHeight = windowHeight - safeAreaTop - safeAreaBottom;
+    // Don't subtract safe areas from the available space to avoid content being cut off
+    // The safe areas will be handled by CSS padding instead
     
     // For iOS, use screen dimensions to avoid issues with browser UI
     if (!canvas.initialScreenHeight) {
+      // Use full screen dimensions without reduction
       windowWidth = Math.min(windowWidth, window.screen.width);
       windowHeight = Math.min(windowHeight, window.screen.height);
     }
@@ -332,21 +301,11 @@ function adjustMobileCanvasSize() {
   // Handle keyboard differently for iOS and Android
   if (isKeyboardOpen) {
     if (canvas.isIOS) {
-      // For iOS, completely ignore viewport changes when keyboard is open
-      // Always use the initial screen dimensions to prevent any layout shifts
+      // For iOS, use fixed dimensions but don't scale up
       windowWidth = canvas.initialWindowWidth;
       windowHeight = canvas.initialWindowHeight;
-      
-      // Additionally, force the container to maintain its position
-      const container = canvas.parentElement;
-      if (container) {
-        container.style.position = 'fixed';
-        container.style.top = '0';
-        container.style.left = '0';
-        container.style.transform = 'none';
-      }
     } else {
-      // Android logic (existing)
+      // For Android, use original dimensions to prevent black bars
       windowWidth = canvas.initialWindowWidth;
       windowHeight = canvas.initialWindowHeight;
     }
@@ -360,21 +319,49 @@ function adjustMobileCanvasSize() {
   const aspectRatio = canvas.originalWidth / canvas.originalHeight;
   let canvasWidth, canvasHeight;
 
-  // Check if we should fill by width or height
-  const screenAspectRatio = windowWidth / windowHeight;
-  
-  if (screenAspectRatio > aspectRatio) {
-    // Screen is wider - fit by height
-    canvasHeight = windowHeight;
-    canvasWidth = canvasHeight * aspectRatio;
+  // Special handling when keyboard is open
+  if (isKeyboardOpen) {
+    // When keyboard is open, maintain the original canvas size to prevent scaling issues
+    if (canvas.isIOS) {
+      // For iOS, keep original proportions but ensure it fits in the reduced space
+      const reducedHeight = windowHeight * 0.6; // Use 60% of available space when keyboard is open
+      if (windowWidth / reducedHeight > aspectRatio) {
+        canvasHeight = reducedHeight;
+        canvasWidth = canvasHeight * aspectRatio;
+      } else {
+        canvasWidth = windowWidth;
+        canvasHeight = canvasWidth / aspectRatio;
+      }
+    } else {
+      // For Android, use original canvas size to prevent black bars
+      const maxWidth = Math.min(windowWidth, canvas.initialWindowWidth);
+      const maxHeight = Math.min(windowHeight, canvas.initialWindowHeight);
+      
+      if (maxWidth / maxHeight > aspectRatio) {
+        canvasHeight = maxHeight;
+        canvasWidth = canvasHeight * aspectRatio;
+      } else {
+        canvasWidth = maxWidth;
+        canvasHeight = canvasWidth / aspectRatio;
+      }
+    }
   } else {
-    // Screen is taller - fit by width
-    canvasWidth = windowWidth;
-    canvasHeight = canvasWidth / aspectRatio;
+    // Normal behavior when keyboard is not open
+    const screenAspectRatio = windowWidth / windowHeight;
+    
+    if (screenAspectRatio > aspectRatio) {
+      // Screen is wider - fit by height
+      canvasHeight = windowHeight;
+      canvasWidth = canvasHeight * aspectRatio;
+    } else {
+      // Screen is taller - fit by width
+      canvasWidth = windowWidth;
+      canvasHeight = canvasWidth / aspectRatio;
+    }
   }
 
   // Apply CSS dimensions
-  applyCanvasDimensions(canvasWidth, canvasHeight);
+  applyCanvasDimensions(canvasWidth, canvasHeight, isKeyboardOpen);
 }
 
 //-----------------------------------------------------------------------------
@@ -385,12 +372,22 @@ function adjustMobileCanvasSize() {
  * Apply dimensions to canvas and center it
  * @param {number} width - Canvas width in pixels
  * @param {number} height - Canvas height in pixels
+ * @param {boolean} isKeyboardOpen - Whether virtual keyboard is open
  */
-function applyCanvasDimensions(width, height) {
+function applyCanvasDimensions(width, height, isKeyboardOpen = false) {
   // Set canvas resolution for mobile devices
   if (canvas.isMobileDevice) {
-    canvas.width = width * (canvas.isIOS ? 2.0 : 3.4);
-    canvas.height = height * (canvas.isIOS ? 2.0 : 3.4);
+    // Adjust resolution multiplier based on keyboard state
+    let multiplier;
+    if (isKeyboardOpen) {
+      // Lower resolution when keyboard is open to prevent performance issues
+      multiplier = canvas.isIOS ? 1.5 : 2.0;
+    } else {
+      // Normal resolution
+      multiplier = canvas.isIOS ? 2.0 : 3.4;
+    }
+    canvas.width = width * multiplier;
+    canvas.height = height * multiplier;
   }
 
   // Apply CSS dimensions
@@ -407,15 +404,27 @@ function applyCanvasDimensions(width, height) {
     container.style.height = '100vh';
     container.style.margin = '0';
     container.style.padding = '0';
-    container.style.backgroundColor = '#000';
+    container.style.backgroundColor = '#fff';
     container.style.overflow = 'hidden';
     
-    // For iOS, handle safe areas
-    if (canvas.isIOS) {
-      container.style.paddingTop = 'env(safe-area-inset-top)';
-      container.style.paddingBottom = 'env(safe-area-inset-bottom)';
-      container.style.paddingLeft = 'env(safe-area-inset-left)';
-      container.style.paddingRight = 'env(safe-area-inset-right)';
+    // Special handling when keyboard is open
+    if (isKeyboardOpen) {
+      if (canvas.isIOS) {
+        // For iOS, prevent any scrolling or layout shifts
+        container.style.position = 'fixed';
+        container.style.height = '100vh';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        // For Android, ensure container doesn't change size
+        container.style.height = '100vh';
+      }
+    } else {
+      // Reset body position when keyboard is closed
+      if (canvas.isIOS) {
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
     }
   }
 
