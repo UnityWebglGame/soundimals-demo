@@ -1,18 +1,4 @@
 <linker>
-  <assembly fullname="Level, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-    <type fullname="Level.AudioClickQuestion" preserve="all" />
-    <type fullname="Level.MultiSelectQuestion" preserve="all" />
-    <type fullname="Level.QuestionStage" preserve="all" />
-    <type fullname="Level.SingleChoiceQuestion" preserve="all" />
-    <type fullname="Level.TimingScoreQuestion" preserve="all" />
-    <type fullname="Level.CharacterImageSet" preserve="nothing" serialized="true" />
-    <type fullname="Level.QuestionContent" preserve="nothing" serialized="true" />
-    <type fullname="Level.QuestionType" preserve="nothing" serialized="true" />
-    <type fullname="Level.ResultTier" preserve="nothing" serialized="true" />
-    <type fullname="Level.AudioClipScoreInfo" preserve="nothing" serialized="true" />
-    <type fullname="Level.TimeThreshold" preserve="nothing" serialized="true" />
-    <type fullname="Level.AudioClipSettings" preserve="nothing" serialized="true" />
-  </assembly>
   <assembly fullname="Unity.Addressables, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" preserve="all">
     <type fullname="UnityEngine.AddressableAssets.Addressables" preserve="all" />
   </assembly>
@@ -26,18 +12,7 @@
     <type fullname="UnityEngine.AudioClip" preserve="all" />
   </assembly>
   <assembly fullname="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-    <type fullname="UnityEngine.Object" preserve="all" />
     <type fullname="UnityEngine.Sprite" preserve="all" />
     <type fullname="UnityEngine.Texture2D" preserve="all" />
-  </assembly>
-  <assembly fullname="Animation">
-    <type fullname="Animation.AnimationSettings" preserve="nothing" serialized="true" />
-  </assembly>
-  <assembly fullname="Sirenix.Serialization">
-    <type fullname="Sirenix.Serialization.SerializationData" preserve="nothing" serialized="true" />
-  </assembly>
-  <assembly fullname="UI">
-    <type fullname="UI.Element.ButtonElementInfo" preserve="nothing" serialized="true" />
-    <type fullname="UI.Element.ImageElementInfo" preserve="nothing" serialized="true" />
   </assembly>
 </linker>

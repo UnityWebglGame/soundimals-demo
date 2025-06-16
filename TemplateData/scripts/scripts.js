@@ -459,7 +459,7 @@ function loadUnityGame() {
     streamingAssetsUrl: "StreamingAssets",
     companyName: "chfn",
     productName: "soundimals",
-    productVersion: "0.1.5",
+    productVersion: "0.1.6",
     showBanner: unityShowBanner,
     // Performance optimizations
     printErr: function(message) {
